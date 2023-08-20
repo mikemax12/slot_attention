@@ -116,7 +116,7 @@ def main(argv):
 
   start = time.time()
   for _ in range(num_train_steps):
-    batch = iterator.get_next()
+    batch = data_iterator.get_next()
 
     # Learning rate warm-up.
     if global_step < warmup_steps:

@@ -64,7 +64,9 @@ def train_step(batch, model, optimizer):
 
 
 def main(argv):
+  
   del argv
+  import tensorflow as tf
   # Hyperparameters of the model.
   batch_size = FLAGS.batch_size
   num_slots = FLAGS.num_slots

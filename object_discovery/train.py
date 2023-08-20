@@ -75,13 +75,27 @@ def main(argv):
   decay_rate = FLAGS.decay_rate
   decay_steps = FLAGS.decay_steps
   tf.random.set_seed(FLAGS.seed)
-  resolution = (128, 128)
+  resolution = (64, 64)
 
   # Build dataset iterators, optimizers and model.
-  data_iterator = data_utils.build_clevr_iterator(
-      batch_size, split="train", resolution=resolution, shuffle=True,
-      max_n_objects=6, get_properties=False, apply_crop=True)
+  #data_iterator = data_utils.build_clevr_iterator(
+      #batch_size, split="train", resolution=resolution, shuffle=True,
+      #max_n_objects=6, get_properties=False, apply_crop=True)
 
+  #!git clone https://github.com/deepmind/multi_object_datasets/
+  #!wget https://storage.googleapis.com/multi-object-datasets/multi_dsprites/multi_dsprites_colored_on_colored.tfrecords
+
+  from multi_object_datasets import multi_dsprites
+  import tensorflow as tf
+  import numpy as np
+  
+  tf_records_path = 'multi_dsprites_colored_on_colored.tfrecords'
+  
+  dataset = multi_dsprites.dataset(tf_records_path, 'colored_on_colored')
+  batched_dataset = dataset.batch(batch_size)  # optional batching
+  data_iterator = batched_dataset.make_one_shot_iterator()
+  
+    
   optimizer = tf.keras.optimizers.Adam(base_learning_rate, epsilon=1e-08)
 
   model = model_utils.build_model(resolution, batch_size, num_slots,
@@ -102,7 +116,7 @@ def main(argv):
 
   start = time.time()
   for _ in range(num_train_steps):
-    batch = next(data_iterator)
+    batch = iterator.get_next()
 
     # Learning rate warm-up.
     if global_step < warmup_steps:

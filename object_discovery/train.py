@@ -51,6 +51,7 @@ def train_step(batch, model, optimizer):
 
   # Get the prediction of the models and compute the loss.
   with tf.GradientTape() as tape:
+    
     preds = model(batch["image"], training=True)
     recon_combined, recons, masks, slots = preds
     loss_value = utils.l2_loss(tf.cast(batch["image"], tf.float32), tf.cast(recon_combined, tf.float32)) #utils.l2_loss(batch["image"], recon_combined)
@@ -77,7 +78,7 @@ def main(argv):
   decay_rate = FLAGS.decay_rate
   decay_steps = FLAGS.decay_steps
   tf.random.set_seed(FLAGS.seed)
-  resolution = (64, 64)
+  resolution = (128, 128)
 
   # Build dataset iterators, optimizers and model.
   #data_iterator = data_utils.build_clevr_iterator(
@@ -90,14 +91,39 @@ def main(argv):
   from multi_object_datasets import multi_dsprites
   import tensorflow as tf
   import numpy as np
+
+  import tensorflow as tf
+
+  # Assuming you have a dataset containing "image" feature
+  def preprocess_example(example):
+      # Extract the image feature
+      image = example["image"]
+      # Reshape images from (64, 64) to (128, 128)
+      reshaped_image = tf.image.resize(image, size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
+      
+      example["reshaped_image"] = reshaped_image
+      return example
   
+  # Example usage
   tf_records_path = 'multi_dsprites_colored_on_colored.tfrecords'
   
+  # Load the dataset
   dataset = multi_dsprites.dataset(tf_records_path, 'colored_on_colored')
-  batched_dataset = dataset.batch(batch_size)  # optional batching
-  data_iterator = batched_dataset.make_one_shot_iterator()
   
-    
+  # Parse the raw data into feature dictionaries
+  feature_description = {
+      "image": tf.io.FixedLenFeature([64, 64, 3], tf.float32),
+      # Add other features as needed
+  }
+  parsed_dataset = raw_dataset.map(lambda x: tf.io.parse_single_example(x, feature_description))
+  
+  # Preprocess the dataset to include reshaped images
+  processed_dataset = parsed_dataset.map(preprocess_example)
+  
+  # Create a data loader for your dataset
+  batched_dataset = processed_dataset.batch(batch_size)
+  data_iterator = iter(batched_dataset)
+  
   optimizer = tf.keras.optimizers.Adam(base_learning_rate, epsilon=1e-08)
 
   model = model_utils.build_model(resolution, batch_size, num_slots,

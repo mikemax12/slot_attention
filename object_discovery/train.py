@@ -153,6 +153,7 @@ def main(argv):
     # We save the checkpoints every 1000 iterations.
     if not global_step  % 1000:
       # Save the checkpoint of the model.
+      model.save('local/scratch/c_mtmaxwel/')
       saved_ckpt = ckpt_manager.save()
       logging.info("Saved checkpoint: %s", saved_ckpt)
 

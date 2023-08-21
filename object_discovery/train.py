@@ -115,7 +115,7 @@ def main(argv):
       "image": tf.io.FixedLenFeature([64, 64, 3], tf.float32),
       # Add other features as needed
   }
-  parsed_dataset = raw_dataset.map(lambda x: tf.io.parse_single_example(x, feature_description))
+  parsed_dataset = dataset.map(lambda x: tf.io.parse_single_example(x, feature_description))
   
   # Preprocess the dataset to include reshaped images
   processed_dataset = parsed_dataset.map(preprocess_example)

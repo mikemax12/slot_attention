@@ -110,18 +110,22 @@ def main(argv):
   # Load the dataset
   dataset = multi_dsprites.dataset(tf_records_path, 'colored_on_colored')
   
+  def _parse_function(example_proto):
+    feature_description = {
+        "image": tf.io.FixedLenFeature([64, 64, 3], tf.float32),
+        # Add other features as needed
+    }
+    return tf.io.parse_single_example(example_proto, feature_description)
+
   # Parse the raw data into feature dictionaries
-  feature_description = {
-      "image": tf.io.FixedLenFeature([64, 64, 3], tf.float32),
-      # Add other features as needed
-  }
-  parsed_dataset = dataset.map(lambda x: tf.io.parse_single_example(x, feature_description))
+  parsed_dataset = dataset.map(_parse_function)
   
   # Preprocess the dataset to include reshaped images
   processed_dataset = parsed_dataset.map(preprocess_example)
   
   # Create a data loader for your dataset
   batched_dataset = processed_dataset.batch(batch_size)
+
   data_iterator = iter(batched_dataset)
   
   optimizer = tf.keras.optimizers.Adam(base_learning_rate, epsilon=1e-08)

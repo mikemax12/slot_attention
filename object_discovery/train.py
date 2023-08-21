@@ -92,13 +92,9 @@ def main(argv):
   import tensorflow as tf
   import numpy as np
 
-  import tensorflow as tf
-  
-  # Function to resize images
   def resize_image(image):
-      print(image.shape)
-      return tf.image.resize(image, size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
-  
+    return tf.image.resize(image, size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
+
   # Function to parse TFRecords
   def parse_tfrecord_fn(example):
       feature_description = {
@@ -106,20 +102,18 @@ def main(argv):
           # Add other features as needed
       }
       example = tf.io.parse_single_example(example, feature_description)
-      image = tf.io.decode_image(example["image"], dtype=tf.uint8)
-      image = tf.cast(image, tf.float32) / 255.0  # Normalize pixel values
-      print(image.shape)
+      image = tf.image.decode_image(example["image"], dtype=tf.uint8)  # Decode image
       reshaped_image = resize_image(image)
       return reshaped_image
   
   # Create a dataset from TFRecords
   tf_records_path = 'multi_dsprites_colored_on_colored.tfrecords'
   raw_dataset = tf.data.TFRecordDataset(tf_records_path)
-  
-  # Parse and preprocess the dataset
+
+  #Parse and preprocess the dataset
   parsed_dataset = raw_dataset.map(parse_tfrecord_fn)
 
-  data_iterator = iter(batched_dataset)
+  data_iterator = iter(parsed_dataset)
   
   optimizer = tf.keras.optimizers.Adam(base_learning_rate, epsilon=1e-08)
 

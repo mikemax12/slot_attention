@@ -51,8 +51,8 @@ def train_step(batch, model, optimizer):
 
   # Get the prediction of the models and compute the loss.
   with tf.GradientTape() as tape:
-    
-    preds = model(batch[0], training=True) #batch["image"]
+    img = tf.image.resize(batch["image"], size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
+    preds = model(img, training=True) #batch["image"]
     recon_combined, recons, masks, slots = preds
     loss_value = utils.l2_loss(tf.cast(batch["image"], tf.float32), tf.cast(recon_combined, tf.float32)) #utils.l2_loss(batch["image"], recon_combined)
     del recons, masks, slots  # Unused.
@@ -98,11 +98,12 @@ def main(argv):
   # Create a dataset from TFRecords
   tf_records_path = 'multi_dsprites_colored_on_colored.tfrecords'
   raw_dataset = tf.data.TFRecordDataset(tf_records_path)
-  
-  # Example usage: Iterate through the dataset
+  tf_records_path = 'multi_dsprites_colored_on_colored.tfrecords'
   batch_size = 1
-  batched_dataset = raw_dataset.batch(batch_size)
-  data_iterator = iter(batched_dataset)
+  
+  dataset = multi_dsprites.dataset(tf_records_path, 'colored_on_colored')
+  batched_dataset = dataset.batch(batch_size)  # optional batching
+  data_iterator = batched_dataset.make_one_shot_iterator()
   
   optimizer = tf.keras.optimizers.Adam(base_learning_rate, epsilon=1e-08)
 
@@ -124,13 +125,9 @@ def main(argv):
 
   start = time.time()
   for _ in range(num_train_steps):
+
+    batch = data_iterator.get_next()
     
-
-    batch_data = next(data_iterator)
-    image_data = batch_data['image']  # Assuming "image" is stored in batch_data
-    reshaped_image = resize_image(image_data)
-    batch = reshaped_image, None
-
     # Learning rate warm-up.
     if global_step < warmup_steps:
       learning_rate = base_learning_rate * tf.cast(

@@ -93,38 +93,29 @@ def main(argv):
   import numpy as np
 
   import tensorflow as tf
-
-  # Assuming you have a dataset containing "image" feature
-  def preprocess_example(example):
-      # Extract the image feature
-      image = example["image"]
-      # Reshape images from (64, 64) to (128, 128)
-      reshaped_image = tf.image.resize(image, size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
-      
-      example["reshaped_image"] = reshaped_image
-      return example
   
-  # Example usage
+  # Function to resize images
+  def resize_image(image):
+      return tf.image.resize(image, size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
+  
+  # Function to parse TFRecords
+  def parse_tfrecord_fn(example):
+      feature_description = {
+          "image": tf.io.FixedLenFeature((), tf.string),  # Assuming "image" is stored as bytes
+          # Add other features as needed
+      }
+      example = tf.io.parse_single_example(example, feature_description)
+      image = tf.io.decode_image(example["image"], dtype=tf.uint8)
+      image = tf.cast(image, tf.float32) / 255.0  # Normalize pixel values
+      reshaped_image = resize_image(image)
+      return reshaped_image
+  
+  # Create a dataset from TFRecords
   tf_records_path = 'multi_dsprites_colored_on_colored.tfrecords'
+  raw_dataset = tf.data.TFRecordDataset(tf_records_path)
   
-  # Load the dataset
-  dataset = multi_dsprites.dataset(tf_records_path, 'colored_on_colored')
-  
-  def _parse_function(example_proto):
-    feature_description = {
-        "image": tf.io.FixedLenFeature([64, 64, 3], tf.float32),
-        # Add other features as needed
-    }
-    return tf.io.parse_single_example(example_proto, feature_description)
-
-  # Parse the raw data into feature dictionaries
-  parsed_dataset = dataset.map(_parse_function)
-  
-  # Preprocess the dataset to include reshaped images
-  processed_dataset = parsed_dataset.map(preprocess_example)
-  
-  # Create a data loader for your dataset
-  batched_dataset = processed_dataset.batch(batch_size)
+  # Parse and preprocess the dataset
+  parsed_dataset = raw_dataset.map(parse_tfrecord_fn)
 
   data_iterator = iter(batched_dataset)
   

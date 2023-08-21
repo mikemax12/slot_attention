@@ -96,6 +96,7 @@ def main(argv):
   
   # Function to resize images
   def resize_image(image):
+      print(image.shape)
       return tf.image.resize(image, size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
   
   # Function to parse TFRecords
@@ -107,6 +108,7 @@ def main(argv):
       example = tf.io.parse_single_example(example, feature_description)
       image = tf.io.decode_image(example["image"], dtype=tf.uint8)
       image = tf.cast(image, tf.float32) / 255.0  # Normalize pixel values
+      print(image.shape)
       reshaped_image = resize_image(image)
       return reshaped_image
   

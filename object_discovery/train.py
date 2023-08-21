@@ -54,7 +54,7 @@ def train_step(batch, model, optimizer):
     img = tf.image.resize(batch["image"], size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
     preds = model(img, training=True) #batch["image"]
     recon_combined, recons, masks, slots = preds
-    loss_value = utils.l2_loss(tf.cast(batch["image"], tf.float32), tf.cast(recon_combined, tf.float32)) #utils.l2_loss(batch["image"], recon_combined)
+    loss_value = utils.l2_loss(tf.cast(img, tf.float32), tf.cast(recon_combined, tf.float32)) #utils.l2_loss(batch["image"], recon_combined)
     del recons, masks, slots  # Unused.
 
   # Get and apply gradients.

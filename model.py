@@ -315,12 +315,9 @@ def build_model(resolution, batch_size, num_slots, num_iterations,
     model_def = SlotAttentionClassifier
   else:
     raise ValueError("Invalid name for model type.")
-  resolution = (64, 64)
   image = tf.keras.Input(list(resolution) + [num_channels], batch_size)
   outputs = model_def(resolution, num_slots, num_iterations)(image)
   model = tf.keras.Model(inputs=image, outputs=outputs)
   return model
-
-
 
 

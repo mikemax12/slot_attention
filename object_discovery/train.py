@@ -92,25 +92,21 @@ def main(argv):
   import tensorflow as tf
   import numpy as np
 
+  # Function to resize images
   def resize_image(image):
-    return tf.image.resize(image, size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
-
+      return tf.image.resize(image, size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
+  
   # Function to parse TFRecords
   def parse_tfrecord_fn(example):
-      feature_description = {
-          "image": tf.io.FixedLenFeature((), tf.string),  # Assuming "image" is stored as bytes
-          # Add other features as needed
-      }
-      example = tf.io.parse_single_example(example, feature_description)
-      image = tf.image.decode_image(example["image"], dtype=tf.uint8)  # Decode image
+      image = example['image']  # Assuming "image" is stored as bytes
       reshaped_image = resize_image(image)
       return reshaped_image
   
   # Create a dataset from TFRecords
   tf_records_path = 'multi_dsprites_colored_on_colored.tfrecords'
   raw_dataset = tf.data.TFRecordDataset(tf_records_path)
-
-  #Parse and preprocess the dataset
+  
+  # Parse and preprocess the dataset
   parsed_dataset = raw_dataset.map(parse_tfrecord_fn)
 
   data_iterator = iter(parsed_dataset)

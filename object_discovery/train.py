@@ -28,7 +28,7 @@ import slot_attention.utils as utils
 
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string("model_dir", "/tmp/object_discovery/",
+flags.DEFINE_string("model_dir", "local/scratch/c_mtmaxwel/object_discovery/",
                     "Where to save the checkpoints.")
 flags.DEFINE_integer("seed", 0, "Random seed.")
 flags.DEFINE_integer("batch_size", 64, "Batch size for the model.")

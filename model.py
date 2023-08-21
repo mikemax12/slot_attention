@@ -305,7 +305,7 @@ class SoftPositionEmbed(layers.Layer):
     return inputs + self.dense(self.grid)
 
 
-def build_model((64, 64), batch_size, num_slots, num_iterations,
+def build_model(resolution = (64, 64), batch_size, num_slots, num_iterations,
                 num_channels=3, model_type="object_discovery"):
   """Build keras model."""
   if model_type == "object_discovery":

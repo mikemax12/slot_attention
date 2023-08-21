@@ -52,7 +52,7 @@ def train_step(batch, model, optimizer):
   # Get the prediction of the models and compute the loss.
   with tf.GradientTape() as tape:
     
-    preds = model(batch["image"], training=True)
+    preds = model(batch[0], training=True) #batch["image"]
     recon_combined, recons, masks, slots = preds
     loss_value = utils.l2_loss(tf.cast(batch["image"], tf.float32), tf.cast(recon_combined, tf.float32)) #utils.l2_loss(batch["image"], recon_combined)
     del recons, masks, slots  # Unused.
@@ -92,24 +92,17 @@ def main(argv):
   import tensorflow as tf
   import numpy as np
 
-  # Function to resize images
   def resize_image(image):
-      return tf.image.resize(image, size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
-  
-  # Function to parse TFRecords
-  def parse_tfrecord_fn(example):
-      image = example['image']  # Assuming "image" is stored as bytes
-      reshaped_image = resize_image(image)
-      return reshaped_image
-  
+    return tf.image.resize(image, size=(128, 128), method=tf.image.ResizeMethod.BILINEAR)
+
   # Create a dataset from TFRecords
   tf_records_path = 'multi_dsprites_colored_on_colored.tfrecords'
   raw_dataset = tf.data.TFRecordDataset(tf_records_path)
   
-  # Parse and preprocess the dataset
-  parsed_dataset = raw_dataset.map(parse_tfrecord_fn)
-
-  data_iterator = iter(parsed_dataset)
+  # Example usage: Iterate through the dataset
+  batch_size = 1
+  batched_dataset = raw_dataset.batch(batch_size)
+  data_iterator = iter(batched_dataset)
   
   optimizer = tf.keras.optimizers.Adam(base_learning_rate, epsilon=1e-08)
 
@@ -131,7 +124,12 @@ def main(argv):
 
   start = time.time()
   for _ in range(num_train_steps):
-    batch = data_iterator.get_next()
+    
+
+    batch_data = next(data_iterator)
+    image_data = batch_data['image']  # Assuming "image" is stored in batch_data
+    reshaped_image = resize_image(image_data)
+    batch = reshaped_image, None
 
     # Learning rate warm-up.
     if global_step < warmup_steps:

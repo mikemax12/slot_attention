@@ -305,16 +305,17 @@ class SoftPositionEmbed(layers.Layer):
     return inputs + self.dense(self.grid)
 
 
-def build_model(resolution = (64, 64), batch_size, num_slots, num_iterations,
+def build_model(resolution, batch_size, num_slots, num_iterations,
                 num_channels=3, model_type="object_discovery"):
   """Build keras model."""
+                  
   if model_type == "object_discovery":
     model_def = SlotAttentionAutoEncoder
   elif model_type == "set_prediction":
     model_def = SlotAttentionClassifier
   else:
     raise ValueError("Invalid name for model type.")
-
+  resolution = (64, 64)
   image = tf.keras.Input(list(resolution) + [num_channels], batch_size)
   outputs = model_def(resolution, num_slots, num_iterations)(image)
   model = tf.keras.Model(inputs=image, outputs=outputs)
